@@ -2,6 +2,10 @@ import requests
 import json
 import time
 
+# 400 error
+class SpotifyInvalidClientException(Exception):
+    pass
+
 # 401 errors
 class SpotifyTokenExpiredException(Exception):
     pass
@@ -85,15 +89,17 @@ class SpotifySearchApiClient:
         return data
     
     # throw an exception if we need to based off the http response code
-    def validate_response(response):
+    def validate_response(self, response):
         if response.status_code == 200:
             pass
+        if response.status_code == 400:
+            raise SpotifyInvalidClientException(response.text)
         if response.status_code == 401:
-            raise SpotifyTokenExpiredException(message=response.message)
+            raise SpotifyTokenExpiredException(response.text)
         if response.status_code == 403:
-            raise SpotifyBadOAuthException(message=response.message)
+            raise SpotifyBadOAuthException(response.text)
         if response.status_code == 429:
-            raise SpotifyRateLimitExceededException(message=response.message)
+            raise SpotifyRateLimitExceededException(response.text)
         
     def search_artists(self, input, limit=None, market='', offset=None):
         data = self.search(type=self.ARTIST, input=input, limit=limit, market=market, offset=offset)
