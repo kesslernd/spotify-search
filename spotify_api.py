@@ -36,6 +36,8 @@ class SpotifySearchApiClient:
     token_type = ''
     token_exprires_at = 0
     token_end = None
+    # 5s token timing padding
+    TOKEN_PADDING = 5
     
     def __init__(self, client_id, client_secret):
         self.client_id = client_id
@@ -44,7 +46,7 @@ class SpotifySearchApiClient:
     # check if we need to refresh the access token
     def check_token(self):
         # pad the timing a bit so we dont run into a race condition
-        if not self.token_exprires_at or self.token_exprires_at > int(time.time()) - 5:
+        if not self.token_exprires_at or self.token_exprires_at > int(time.time()) - self.TOKEN_PADDING:
             self.set_access_token()
 
     # get the access token for other API calls
@@ -128,16 +130,3 @@ class SpotifySearchApiClient:
     def search_audiobooks(self, input, limit=None, market='', offset=None):
         data = self.search(type=self.AUDIOBOOK, input=input, limit=limit, market=market, offset=offset)
         return [d for d in data['audiobooks']['items']]
-
-
-CLIENT_ID = '<YOUR CLIENT ID>'
-CLIENT_SECRET = '<YOUR CLIENT SECRET>'
-
-client = SpotifySearchApiClient(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
-
-artists = client.search_artists('Copeland')
-albums = client.search_albums('Beneath Medicine Tree')
-playlists = client.search_playlists('workout')
-tracks = client.search_tracks('Mr. Brightside')
-episodes = client.search_episodes('cool episode')
-audiobooks = client.search_audiobooks('The Dark Tower')
